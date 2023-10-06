@@ -58,6 +58,19 @@ func terraformOptions() *terraform.Options {
 	return &terraform.Options{
 		TerraformDir: fixtures,
 		VarFiles:     []string{"test.tfvars"},
+
+		// Tags: map[string]*string{
+		// 	"tagKey1": to.Ptr("tag-value-1"),
+		// 	"tagKey2": to.Ptr("tag-value-2"),
+		// },
+		// Properties: map[string]interface{}{
+		// 	"addressSpace": armnetwork.AddressSpace{
+		// 		AddressPrefixes: []*string{
+		// 			to.Ptr("10.1.0.0/16"),
+		// 		},
+		// 	},
+		// },
+
 		// // Variables to pass to our Terraform code using -var options
 		// Vars: map[string]interface{}{
 		// 	"resource_group_name": resource_group_name, //os.Getenv("TF_VAR_resource_group_name"),
