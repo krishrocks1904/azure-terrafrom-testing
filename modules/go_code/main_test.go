@@ -85,8 +85,6 @@ func getResourceFromRESTAPI(out string) (armresources.ClientGetByIDResponse, err
 	//resourceId := fmt.Sprintf(resourceIdFormat, subscriptionId, resource_group_name, expectedResource_name)
 	// Azure SDK Azure Resource Management clients accept the credential as a parameter
 	client, err := armresources.NewClient(subscriptionId, cred, nil)
-	//testsuite.Require().NoError(err)
-	//func (client *Client) GetByID(ctx context.Context, resourceID string, apiVersion string, options *ClientGetByIDOptions) (ClientGetByIDResponse, error)
 
 	resource, err := client.GetByID(ctx, resourceId, apiVersion, nil)
 	if err != nil {
