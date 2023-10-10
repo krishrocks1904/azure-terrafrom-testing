@@ -122,10 +122,10 @@ func Test_automation(t *testing.T) {
 		Want      string
 		Condition TestCondition
 	}{
-		{"resource name", reponseData.Name, expected_name, TestConditionEquals},
-		{"resource location", reponseData.Location, expected_location, TestConditionEquals},
-		{"FullyQualifiedDomainName", reponseData.Properties.FullyQualifiedDomainName, expected_name, TestConditionContains},
-		{"FullyQualifiedDomainName Matching", reponseData.Properties.FullyQualifiedDomainName, fmt.Sprintf("%s.database.windows.net", expected_name), TestConditionEquals},
+		{"resource name matching", reponseData.Name, expected_name, TestConditionEquals},
+		{"resource location matching", reponseData.Location, expected_location, TestConditionEquals},
+		{"FQDN contains resource name", reponseData.Properties.FullyQualifiedDomainName, expected_name, TestConditionContains},
+		{"FQDN Matching", reponseData.Properties.FullyQualifiedDomainName, fmt.Sprintf("%s.database.windows.net", expected_name), TestConditionEquals},
 	}
 
 	for _, tc := range testCases {
