@@ -10,48 +10,27 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/random"
-	"github.com/gruntwork-io/terratest/modules/terraform"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armresources"
+	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
 )
 
 const (
-	fixtures          = "../"
-	apiVersion        = "2021-11-01"
-	expected_name     = "sqlserverdemo-9901"
-	expected_location = "eastus"
+	fixtures   = "../"
+	apiVersion = "2021-11-01"
 )
 
 var (
-	globalBackendConf = make(map[string]interface{})
-	globalEnvVars     = make(map[string]string)
-	uniquePostfix     = strings.ToLower(random.UniqueId())
+	globalBackendConf   = make(map[string]interface{})
+	globalEnvVars       = make(map[string]string)
+	uniquePostfix       = strings.ToLower(random.UniqueId())
+	expected_name       = "sqlserverdemo-9901"
+	expected_location   = "eastus"
+	resource_group_name = "rg-tf-deployment"
 )
 var subscriptionId string
-
-func setTerraformVariables() (map[string]string, error) {
-
-	// Getting enVars from environment variables
-	ARM_CLIENT_ID := os.Getenv("AZURE_CLIENT_ID")
-	ARM_CLIENT_SECRET := os.Getenv("AZURE_CLIENT_SECRET")
-	ARM_TENANT_ID := os.Getenv("AZURE_TENANT_ID")
-	ARM_SUBSCRIPTION_ID := os.Getenv("AZURE_SUBSCRIPTION_ID")
-
-	// Creating globalEnVars for terraform call through Terratest
-	if ARM_CLIENT_ID != "" {
-		globalEnvVars["ARM_CLIENT_ID"] = ARM_CLIENT_ID
-		globalEnvVars["ARM_CLIENT_SECRET"] = ARM_CLIENT_SECRET
-		globalEnvVars["ARM_SUBSCRIPTION_ID"] = ARM_SUBSCRIPTION_ID
-
-		globalEnvVars["ARM_TENANT_ID"] = ARM_TENANT_ID
-	}
-
-	subscriptionId = globalEnvVars["ARM_SUBSCRIPTION_ID"]
-	return globalEnvVars, nil
-}
 
 type TestCondition int
 
@@ -60,44 +39,6 @@ const (
 	TestConditionNotEmpty TestCondition = 1
 	TestConditionContains TestCondition = 2
 )
-
-func terraformOptions() *terraform.Options {
-	return &terraform.Options{
-		TerraformDir: fixtures,
-		VarFiles:     []string{"test.tfvars"},
-
-		// Tags: map[string]*string{
-		// 	"tagKey1": to.Ptr("tag-value-1"),
-		// 	"tagKey2": to.Ptr("tag-value-2"),
-		// },
-		// Properties: map[string]interface{}{
-		// 	"addressSpace": armnetwork.AddressSpace{
-		// 		AddressPrefixes: []*string{
-		// 			to.Ptr("10.1.0.0/16"),
-		// 		},
-		// 	},
-		// },
-
-		// // Variables to pass to our Terraform code using -var options
-		// Vars: map[string]interface{}{
-		// 	"resource_group_name": resource_group_name, //os.Getenv("TF_VAR_resource_group_name"),
-		// 	"location":            location,//os.Getenv("TF_VAR_location"),
-		// 	"name":name,
-		// 	"settings":settings,
-		// },
-
-		// // globalvariables for user account
-		// EnvVars: globalEnvVars,
-		// // Backend values to set when initialziing Terraform
-		// BackendConfig: globalBackendConf,
-		// // Disable colors in Terraform commands so its easier to parse stdout/stderr
-		// NoColor: true,
-		// // Reconfigure is required if module deployment and go test pipelines are running in one stage
-		// Reconfigure: true,
-		//NoColor:      true,
-
-	}
-}
 
 func Test_automation(t *testing.T) {
 	t.Parallel()
@@ -116,6 +57,7 @@ func Test_automation(t *testing.T) {
 
 	fmt.Printf("Resource ID: %s\n", reponseData.ResourceId)
 
+	//Aserts
 	testCases := []struct {
 		Name      string
 		Got       string
@@ -138,41 +80,59 @@ func Test_automation(t *testing.T) {
 			case TestConditionContains:
 				assert.Contains(t, tc.Got, tc.Want)
 			}
-
 		})
 	}
-
 	//t.Run("Output Validation", OutputValidation)
 }
 
-func OutputValidation(t *testing.T) {
-	// testCases := []struct {
-	// 	Name      string
-	// 	Got       string
-	// 	Want      string
-	// 	Condition TestCondition
-	// }{
+func setTerraformVariables() (map[string]string, error) {
 
-	// 	{"resource name", reponseData.ResourceId, expected_name, TestConditionEquals},
-	// 	{"resource location", reponseData.Location, expected_location, TestConditionEquals},
-	// 	{"FullyQualifiedDomainName", reponseData.Properties.FullyQualifiedDomainName, expected_name, TestConditionContains},
-	// 	{"FullyQualifiedDomainName Matching", reponseData.Properties.FullyQualifiedDomainName, fmt.Sprintf("%s.database.windows.net", expected_name), TestConditionEquals},
-	// }
+	// Getting enVars from environment variables
+	ARM_CLIENT_ID := os.Getenv("AZURE_CLIENT_ID")
+	ARM_CLIENT_SECRET := os.Getenv("AZURE_CLIENT_SECRET")
+	ARM_TENANT_ID := os.Getenv("AZURE_TENANT_ID")
+	ARM_SUBSCRIPTION_ID := os.Getenv("AZURE_SUBSCRIPTION_ID")
 
-	// for _, tc := range testCases {
-	// 	t.Run(tc.Name, func(t *testing.T) {
-	// 		switch tc.Condition {
-	// 		case TestConditionEquals:
-	// 			assert.Equal(t, tc.Got, tc.Want)
-	// 		case TestConditionNotEmpty:
-	// 			assert.NotEmpty(t, tc.Got)
-	// 		case TestConditionContains:
-	// 			assert.Contains(t, tc.Got, tc.Want)
-	// 		}
+	// Creating globalEnVars for terraform call through Terratest
+	if ARM_CLIENT_ID != "" {
+		globalEnvVars["ARM_CLIENT_ID"] = ARM_CLIENT_ID
+		globalEnvVars["ARM_CLIENT_SECRET"] = ARM_CLIENT_SECRET
+		globalEnvVars["ARM_SUBSCRIPTION_ID"] = ARM_SUBSCRIPTION_ID
 
-	// 	})
-	// }
+		globalEnvVars["ARM_TENANT_ID"] = ARM_TENANT_ID
+	}
+
+	// Set the variable value so that it can be used later
+	subscriptionId = globalEnvVars["ARM_SUBSCRIPTION_ID"]
+	return globalEnvVars, nil
 }
+
+func terraformOptions() *terraform.Options {
+	return &terraform.Options{
+		TerraformDir: fixtures,
+		VarFiles:     []string{"test.tfvars"},
+
+		// // Variables to pass to our Terraform code using -var options
+		Vars: map[string]interface{}{
+			"sqlserver_name":                   expected_name,
+			"sqlserver_resource_group_name":    resource_group_name,
+			"sqlserver_location":               expected_location,
+			"sqlserver_version":                "12.0",
+			"sqlserver_administrator_login":    "sqladmin",
+			"sqlserver_administrator_password": "thisIsDog11",
+		},
+
+		// // globalvariables for user account
+		// EnvVars: globalEnvVars,
+		// // Backend values to set when initialziing Terraform
+		// BackendConfig: globalBackendConf,
+		// // Disable colors in Terraform commands so its easier to parse stdout/stderr
+		// NoColor: true,
+		// // Reconfigure is required if module deployment and go test pipelines are running in one stage
+		// Reconfigure: true,
+	}
+}
+
 func getResourceFromRESTAPI(resourceId, azure_subscription_id string) (ReponseBase, error) {
 
 	ctx := context.Background()
@@ -211,7 +171,35 @@ func getResourceFromRESTAPI(resourceId, azure_subscription_id string) (ReponseBa
 	var result ReponseBase
 	json.Unmarshal(bytes, &result)
 	fmt.Printf("Result ResourceId:: %s\n", result.ResourceId)
-	fmt.Printf("Result FullyQualifiedDomainName Name:: %s\n", result.Properties.FullyQualifiedDomainName)
 
 	return result, err
+}
+
+func OutputValidation(t *testing.T) {
+	// testCases := []struct {
+	// 	Name      string
+	// 	Got       string
+	// 	Want      string
+	// 	Condition TestCondition
+	// }{
+
+	// 	{"resource name", reponseData.ResourceId, expected_name, TestConditionEquals},
+	// 	{"resource location", reponseData.Location, expected_location, TestConditionEquals},
+	// 	{"FullyQualifiedDomainName", reponseData.Properties.FullyQualifiedDomainName, expected_name, TestConditionContains},
+	// 	{"FullyQualifiedDomainName Matching", reponseData.Properties.FullyQualifiedDomainName, fmt.Sprintf("%s.database.windows.net", expected_name), TestConditionEquals},
+	// }
+
+	// for _, tc := range testCases {
+	// 	t.Run(tc.Name, func(t *testing.T) {
+	// 		switch tc.Condition {
+	// 		case TestConditionEquals:
+	// 			assert.Equal(t, tc.Got, tc.Want)
+	// 		case TestConditionNotEmpty:
+	// 			assert.NotEmpty(t, tc.Got)
+	// 		case TestConditionContains:
+	// 			assert.Contains(t, tc.Got, tc.Want)
+	// 		}
+
+	// 	})
+	// }
 }
